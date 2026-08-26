@@ -5,21 +5,54 @@ strukturę i treści strony dolinaklonowa.com: Strona główna, O nas, Usługi, 
 
 To nowy, niezależny kod (nie eksport silnika WordPress/page-buildera oryginalnej strony).
 
-## Uruchomienie lokalne
+## Uruchomienie lokalne (Standardowe)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Aplikacja wystartuje pod `http://localhost:5173`.
+Aplikacja wystartuje pod `http://localhost:3000`.
 
-## Build produkcyjny
+## Uruchomienie za pomocą Dockera (Lokalnie)
 
+### 1. Za pomocą Docker Compose (Najprościej):
 ```bash
-npm run build
-npm run preview
+docker compose up --build -d
 ```
+Aplikacja będzie dostępna pod adresem `http://localhost`.
+
+### 2. Za pomocą czystego Dockera:
+```bash
+# Zbudowanie obrazu
+docker build -t dolina-klonowa:latest .
+
+# Uruchomienie kontenera
+docker run -d -p 80:80 --name dolina-klonowa dolina-klonowa:latest
+```
+
+## Automatyczny Pipeline GitHub Actions (CI/CD)
+
+W repozytorium w katalogu `.github/workflows/docker-ci-cd.yml` znajduje się gotowy pipeline CI/CD:
+
+1. **Test & Build**: Przy każdym Pull Requeście lub Pushu na branch `main`/`master` sprawdza poprawność kodu i typów TypeScript (`npm run build`).
+2. **Docker Build & Push**: Automatycznie buduje wieloetapowy, zoptymalizowany obraz Docker i publikuje go do rejestru **GitHub Container Registry (GHCR)**:
+   ```
+   ghcr.io/<twoj-username>/dolinaklonowa:latest
+   ```
+3. **Deploy (Opcjonalnie)**: Pipeline zawiera gotowy szablon wdrożenia na własny serwer VPS przez SSH (wystarczy dodać sekrety `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY` w ustawieniach repozytorium GitHub: *Settings -> Secrets and variables -> Actions*).
+
+## Sposoby na hosting
+
+- **Dowolny VPS (Hetzner, OVH, DigitalOcean, Linode, AWS EC2):**
+  Zainstaluj Docker i uruchom:
+  ```bash
+  docker run -d -p 80:80 --restart unless-stopped ghcr.io/<twoj-username>/dolinaklonowa:latest
+  ```
+- **Platformy PaaS (Coolify / Portainer / Render / Railway / CapRover):**
+  Wskaż repozytorium z dołączonym `Dockerfile` lub bezpośrednio obraz z GHCR.
+- **Google Cloud Run / AWS ECS / Azure Container Apps:**
+  Wskaż zbudowany kontener z rejestru kontenerów.
 
 ## Struktura
 
